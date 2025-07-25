@@ -20,6 +20,8 @@ class EasyTable extends StatefulWidget {
   final SearchBarStyle? searchBarStyle;
   final String Function(int start, int end, int total)? pageInfoTextBuilder;
   final String? rowsPerPageText;
+  final Widget Function(Map<String, dynamic> item, HeaderItem header)?
+      cellBuilder;
 
   const EasyTable({
     super.key,
@@ -36,6 +38,7 @@ class EasyTable extends StatefulWidget {
     this.searchBarStyle,
     this.pageInfoTextBuilder,
     this.rowsPerPageText,
+    this.cellBuilder,
   });
 
   @override
@@ -369,11 +372,13 @@ class _EasyTableState extends State<EasyTable> {
                         widget.style?.cellPadding ?? const EdgeInsets.all(12),
                     child: Align(
                       alignment: _getTextAlign(header.align),
-                      child: Text(
-                        item[header.value]?.toString() ?? '',
-                        overflow: TextOverflow.ellipsis,
-                        softWrap: false,
-                      ),
+                      child: widget.cellBuilder != null
+                          ? widget.cellBuilder!(item, header)
+                          : Text(
+                              item[header.value]?.toString() ?? '',
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: false,
+                            ),
                     ),
                   ),
                 );
