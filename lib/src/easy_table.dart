@@ -6,6 +6,8 @@ class EasyTable extends StatefulWidget {
   final List<Map<String, dynamic>> items;
   final bool expanded;
   final Widget Function(Map<String, dynamic> item)? expandedBuilder;
+  final BoxDecoration Function(Map<String, dynamic> item, int index)?
+      rowStyleBuilder;
 
   const EasyTable({
     super.key,
@@ -13,6 +15,7 @@ class EasyTable extends StatefulWidget {
     required this.items,
     this.expanded = false,
     this.expandedBuilder,
+    this.rowStyleBuilder,
   });
 
   @override
@@ -187,44 +190,49 @@ class _EasyTableState extends State<EasyTable> {
   }
 
   Widget _buildRow(Map<String, dynamic> item, int index) {
+    final decoration = widget.rowStyleBuilder?.call(item, index);
+
     return InkWell(
       onTap: widget.expanded
           ? () => setState(() {
                 _expandedIndex = _expandedIndex == index ? null : index;
               })
           : null,
-      child: Row(
-        children: [
-          ...widget.headers.map((header) {
-            final columnWidth = header.width != null
-                ? double.tryParse(header.width!.replaceAll('px', '')) ?? 150.0
-                : 150.0;
+      child: Container(
+        decoration: decoration,
+        child: Row(
+          children: [
+            ...widget.headers.map((header) {
+              final columnWidth = header.width != null
+                  ? double.tryParse(header.width!.replaceAll('px', '')) ?? 150.0
+                  : 150.0;
 
-            return Container(
-              width: columnWidth,
-              padding: const EdgeInsets.all(12),
-              child: Align(
-                alignment: _getTextAlign(header.align),
-                child: Text(
-                  item[header.value]?.toString() ?? '',
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
+              return Container(
+                width: columnWidth,
+                padding: const EdgeInsets.all(12),
+                child: Align(
+                  alignment: _getTextAlign(header.align),
+                  child: Text(
+                    item[header.value]?.toString() ?? '',
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                  ),
+                ),
+              );
+            }),
+            if (widget.expanded)
+              Container(
+                width: 48,
+                padding: const EdgeInsets.all(12),
+                alignment: Alignment.center,
+                child: Icon(
+                  _expandedIndex == index
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
                 ),
               ),
-            );
-          }),
-          if (widget.expanded)
-            Container(
-              width: 48,
-              padding: const EdgeInsets.all(12),
-              alignment: Alignment.center,
-              child: Icon(
-                _expandedIndex == index
-                    ? Icons.keyboard_arrow_up
-                    : Icons.keyboard_arrow_down,
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -237,9 +245,9 @@ class _EasyTableState extends State<EasyTable> {
       width: double.infinity,
       color: Colors.grey.shade100,
       padding: const EdgeInsets.all(12),
-      child: Text(
-        'Expanded: ${item['name']}',
-        style: const TextStyle(fontStyle: FontStyle.italic),
+      child: const Text(
+        'Expanded',
+        style: TextStyle(fontStyle: FontStyle.italic),
       ),
     );
   }

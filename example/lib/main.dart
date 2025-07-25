@@ -125,6 +125,14 @@ class TableDemoPage extends StatelessWidget {
           headers: headers,
           items: items,
           expanded: true,
+          rowStyleBuilder: (item, index) {
+            return BoxDecoration(
+              color: item['follow_up'] == 'Yes' ? Colors.green : Colors.white,
+              border: Border(
+                bottom: BorderSide(color: Colors.grey.shade300),
+              ),
+            );
+          },
           expandedBuilder: (item) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
