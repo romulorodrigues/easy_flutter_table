@@ -31,6 +31,40 @@ class _EasyTableState extends State<EasyTable> {
   String _filterText = '';
   int? _expandedIndex;
 
+  double _calculateTotalTableWidth() {
+    double total = 0;
+    for (var h in widget.headers) {
+      if (h.width != null) {
+        final clean = h.width!.replaceAll('px', '');
+        final parsed = double.tryParse(clean);
+        if (parsed != null) total += parsed;
+      } else {
+        total += 150;
+      }
+    }
+
+    if (widget.expanded) {
+      total += 48;
+    }
+
+    return total;
+  }
+
+  double _calculateMaxTableWidth() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final calculated = _calculateTotalTableWidth();
+    return calculated < screenWidth ? screenWidth : calculated;
+  }
+
+  int _getFlex(HeaderItem header) {
+    if (header.width != null) {
+      final clean = header.width!.replaceAll('px', '');
+      final parsed = double.tryParse(clean);
+      if (parsed != null) return parsed.round();
+    }
+    return 150;
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredItems = widget.items.where((item) {
@@ -59,14 +93,14 @@ class _EasyTableState extends State<EasyTable> {
             scrollDirection: Axis.horizontal,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minWidth: _calculateTotalTableWidth(),
+                minWidth: _calculateMaxTableWidth(),
               ),
               child: Column(
                 children: [
                   _buildHeader(),
                   const Divider(height: 1),
                   SizedBox(
-                    width: _calculateTotalTableWidth(),
+                    width: _calculateMaxTableWidth(),
                     height: MediaQuery.of(context).size.height * 0.6,
                     child: Scrollbar(
                       controller: _verticalController,
@@ -96,25 +130,6 @@ class _EasyTableState extends State<EasyTable> {
     );
   }
 
-  double _calculateTotalTableWidth() {
-    double total = 0;
-    for (var h in widget.headers) {
-      if (h.width != null) {
-        final clean = h.width!.replaceAll('px', '');
-        final parsed = double.tryParse(clean);
-        if (parsed != null) total += parsed;
-      } else {
-        total += 150;
-      }
-    }
-
-    if (widget.expanded) {
-      total += 48;
-    }
-
-    return total;
-  }
-
   Widget _buildSearchBar() {
     final hasFilterable = widget.headers.any((h) => h.filterable);
     return hasFilterable
@@ -132,60 +147,63 @@ class _EasyTableState extends State<EasyTable> {
   }
 
   Widget _buildHeader() {
-    return Row(
-      children: [
-        ...widget.headers.map((header) {
-          final isSorted = _sortKey == header.value;
-          final columnWidth = header.width != null
-              ? double.tryParse(header.width!.replaceAll('px', '')) ?? 150.0
-              : 150.0;
+    return SizedBox(
+      width: _calculateMaxTableWidth(),
+      child: Row(
+        children: [
+          ...widget.headers.map((header) {
+            final isSorted = _sortKey == header.value;
+            final flex = _getFlex(header);
 
-          return Container(
-            width: columnWidth,
-            padding: const EdgeInsets.all(12),
-            child: GestureDetector(
-              onTap: header.sortable
-                  ? () => setState(() {
-                        if (_sortKey == header.value) {
-                          _ascending = !_ascending;
-                        } else {
-                          _sortKey = header.value;
-                          _ascending = true;
-                        }
-                      })
-                  : null,
-              child: Row(
-                mainAxisAlignment: _getAlignment(header.align),
-                children: [
-                  Expanded(
-                    child: Text(
-                      header.text,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: false,
-                      maxLines: 1,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
+            return Flexible(
+              flex: flex,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: GestureDetector(
+                  onTap: header.sortable
+                      ? () => setState(() {
+                            if (_sortKey == header.value) {
+                              _ascending = !_ascending;
+                            } else {
+                              _sortKey = header.value;
+                              _ascending = true;
+                            }
+                          })
+                      : null,
+                  child: Row(
+                    mainAxisAlignment: _getAlignment(header.align),
+                    children: [
+                      Expanded(
+                        child: Text(
+                          header.text,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: false,
+                          maxLines: 1,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      if (header.sortable)
+                        Icon(
+                          isSorted
+                              ? (_ascending
+                                  ? Icons.arrow_upward
+                                  : Icons.arrow_downward)
+                              : Icons.unfold_more,
+                          size: 16,
+                        ),
+                    ],
                   ),
-                  if (header.sortable)
-                    Icon(
-                      isSorted
-                          ? (_ascending
-                              ? Icons.arrow_upward
-                              : Icons.arrow_downward)
-                          : Icons.unfold_more,
-                      size: 16,
-                    ),
-                ],
+                ),
               ),
+            );
+          }),
+          if (widget.expanded)
+            const SizedBox(
+              width: 48,
+              child: Text(''),
             ),
-          );
-        }),
-        if (widget.expanded)
-          const SizedBox(
-            width: 48,
-            child: Text(''),
-          ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -200,38 +218,41 @@ class _EasyTableState extends State<EasyTable> {
           : null,
       child: Container(
         decoration: decoration,
-        child: Row(
-          children: [
-            ...widget.headers.map((header) {
-              final columnWidth = header.width != null
-                  ? double.tryParse(header.width!.replaceAll('px', '')) ?? 150.0
-                  : 150.0;
+        child: SizedBox(
+          width: _calculateMaxTableWidth(),
+          child: Row(
+            children: [
+              ...widget.headers.map((header) {
+                final flex = _getFlex(header);
 
-              return Container(
-                width: columnWidth,
-                padding: const EdgeInsets.all(12),
-                child: Align(
-                  alignment: _getTextAlign(header.align),
-                  child: Text(
-                    item[header.value]?.toString() ?? '',
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: false,
+                return Flexible(
+                  flex: flex,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Align(
+                      alignment: _getTextAlign(header.align),
+                      child: Text(
+                        item[header.value]?.toString() ?? '',
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: false,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+              if (widget.expanded)
+                Container(
+                  width: 48,
+                  padding: const EdgeInsets.all(12),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    _expandedIndex == index
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
                   ),
                 ),
-              );
-            }),
-            if (widget.expanded)
-              Container(
-                width: 48,
-                padding: const EdgeInsets.all(12),
-                alignment: Alignment.center,
-                child: Icon(
-                  _expandedIndex == index
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

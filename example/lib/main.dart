@@ -34,7 +34,7 @@ class TableDemoPage extends StatelessWidget {
         text: 'Birth Date',
         value: 'birth_date',
         filterable: false,
-        align: 'center',
+        align: 'start',
         width: '150px',
       ),
       HeaderItem(
@@ -47,14 +47,14 @@ class TableDemoPage extends StatelessWidget {
         text: 'Next Appointment',
         value: 'next_appointment',
         filterable: false,
-        align: 'end',
+        align: 'start',
       ),
       HeaderItem(
         text: 'Follow-up',
         value: 'follow_up',
         filterable: false,
         sortable: false,
-        align: 'center',
+        align: 'start',
       ),
     ];
 
@@ -134,37 +134,41 @@ class TableDemoPage extends StatelessWidget {
             );
           },
           expandedBuilder: (item) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            return Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(
-                    'Details for: ${item['name']}',
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                DataTable(
-                  columns: const [
-                    DataColumn(
-                      label: Text(
-                        'Field',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Text(
+                        'Details for: ${item['name']}',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    DataColumn(
-                      label: Text(
-                        'Value',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                    DataTable(
+                      columns: const [
+                        DataColumn(
+                          label: Text(
+                            'Field',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'Value',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                      rows: [
+                        DataRow(cells: [
+                          const DataCell(Text('Birth Date')),
+                          DataCell(Text(item['birth_date']?.toString() ?? '-')),
+                        ]),
+                      ],
                     ),
-                  ],
-                  rows: [
-                    DataRow(cells: [
-                      const DataCell(Text('Birth Date')),
-                      DataCell(Text(item['birth_date']?.toString() ?? '-')),
-                    ]),
                   ],
                 ),
               ],
