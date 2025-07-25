@@ -93,7 +93,8 @@ class _TableDemoPageState extends State<TableDemoPage> {
           value: 'birth_date',
           align: 'start',
           width: '150px'),
-      HeaderItem(text: 'Mother', value: 'mother', align: 'start'),
+      HeaderItem(
+          text: 'Mother', value: 'mother', filterable: true, align: 'start'),
       HeaderItem(
           text: 'Next Appointment', value: 'next_appointment', align: 'start'),
       HeaderItem(
@@ -112,6 +113,18 @@ class _TableDemoPageState extends State<TableDemoPage> {
           items: items,
           primaryKey: 'id',
           expanded: true,
+          searchBarStyle: SearchBarStyle(
+            decoration: InputDecoration(
+              hintText: 'Search...',
+              prefixIcon: Icon(Icons.filter_list),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            textStyle: const TextStyle(color: Colors.black, fontSize: 16),
+          ),
           loadingConfig: LoadingItem(
             enabled: _loading,
             message: 'Fetching users...',

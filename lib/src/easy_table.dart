@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'models/header_item.dart';
 import 'models/loading_item.dart';
+import 'models/search_bar_style.dart';
 import 'models/table_style.dart';
 
 class EasyTable extends StatefulWidget {
@@ -16,6 +17,7 @@ class EasyTable extends StatefulWidget {
       onSelectionChanged;
   final TableStyle? style;
   final String primaryKey;
+  final SearchBarStyle? searchBarStyle;
 
   const EasyTable({
     super.key,
@@ -29,6 +31,7 @@ class EasyTable extends StatefulWidget {
     this.onSelectionChanged,
     this.style = const TableStyle(),
     required this.primaryKey,
+    this.searchBarStyle,
   });
 
   @override
@@ -186,14 +189,17 @@ class _EasyTableState extends State<EasyTable> {
 
   Widget _buildSearchBar() {
     final hasFilterable = widget.headers.any((h) => h.filterable);
+    final style = widget.searchBarStyle ?? const SearchBarStyle();
+
     return hasFilterable
-        ? Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              onChanged: (value) => setState(() => _filterText = value),
-              decoration: const InputDecoration(
-                hintText: 'Search...',
-                prefixIcon: Icon(Icons.search),
+        ? Container(
+            color: Colors.white,
+            child: Padding(
+              padding: style.padding,
+              child: TextField(
+                onChanged: (value) => setState(() => _filterText = value),
+                decoration: style.decoration,
+                style: style.textStyle,
               ),
             ),
           )
