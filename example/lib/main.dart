@@ -19,13 +19,29 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class TableDemoPage extends StatelessWidget {
+class TableDemoPage extends StatefulWidget {
   const TableDemoPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final random = Random();
+  State<TableDemoPage> createState() => _TableDemoPageState();
+}
 
+class _TableDemoPageState extends State<TableDemoPage> {
+  bool _loading = true;
+  late List<Map<String, dynamic>> items;
+
+  @override
+  void initState() {
+    super.initState();
+    // Simula carregamento de 5 segundos
+    Future.delayed(const Duration(seconds: 5), () {
+      setState(() {
+        _loading = false;
+      });
+    });
+
+    // Gera os dados desde já
+    final random = Random();
     final names = [
       'Alice',
       'Bob',
@@ -41,25 +57,7 @@ class TableDemoPage extends StatelessWidget {
     final mothers = ['Mary', 'Susan', 'Linda', 'Patricia', 'Karen', 'Nancy'];
     final followUpOptions = ['Yes', 'No'];
 
-    final headers = [
-      HeaderItem(text: 'ID', value: 'id', filterable: true, align: 'start'),
-      HeaderItem(text: 'Name', value: 'name', filterable: true, align: 'start'),
-      HeaderItem(
-          text: 'Birth Date',
-          value: 'birth_date',
-          align: 'start',
-          width: '150px'),
-      HeaderItem(text: 'Mother', value: 'mother', align: 'start'),
-      HeaderItem(
-          text: 'Next Appointment', value: 'next_appointment', align: 'start'),
-      HeaderItem(
-          text: 'Follow-up',
-          value: 'follow_up',
-          align: 'start',
-          sortable: false),
-    ];
-
-    final items = List.generate(2000, (index) {
+    items = List.generate(2000, (index) {
       final id = index + 1;
       final name = '${names[random.nextInt(names.length)]} ${[
         'Smith',
@@ -83,6 +81,27 @@ class TableDemoPage extends StatelessWidget {
         'follow_up': followUpOptions[random.nextInt(2)],
       };
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final headers = [
+      HeaderItem(text: 'ID', value: 'id', filterable: true, align: 'start'),
+      HeaderItem(text: 'Name', value: 'name', filterable: true, align: 'start'),
+      HeaderItem(
+          text: 'Birth Date',
+          value: 'birth_date',
+          align: 'start',
+          width: '150px'),
+      HeaderItem(text: 'Mother', value: 'mother', align: 'start'),
+      HeaderItem(
+          text: 'Next Appointment', value: 'next_appointment', align: 'start'),
+      HeaderItem(
+          text: 'Follow-up',
+          value: 'follow_up',
+          align: 'start',
+          sortable: false),
+    ];
 
     return Scaffold(
       appBar: AppBar(title: const Text('Easy Table Example')),
@@ -93,14 +112,14 @@ class TableDemoPage extends StatelessWidget {
           items: items,
           primaryKey: 'id',
           expanded: true,
-          // loadingConfig: LoadingItem(
-          //   enabled: true,
-          //   message: 'Fetching users...',
-          //   color: Colors.green,
-          // ),
+          loadingConfig: LoadingItem(
+            enabled: _loading,
+            message: 'Fetching users...',
+            color: Colors.blue,
+          ),
           showSelect: true,
           onSelectionChanged: (selectedItems) {
-            print('Selected: ${selectedItems}');
+            print('Selecionados: $selectedItems');
           },
           rowStyleBuilder: (item, index) {
             return BoxDecoration(
@@ -110,7 +129,7 @@ class TableDemoPage extends StatelessWidget {
               ),
             );
           },
-          style: TableStyle(
+          style: const TableStyle(
             backgroundColor: Colors.white,
             striped: true,
             cellPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),

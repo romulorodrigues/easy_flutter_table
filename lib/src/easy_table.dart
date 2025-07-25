@@ -119,10 +119,6 @@ class _EasyTableState extends State<EasyTable> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.loadingConfig.enabled) {
-      return _buildLoading();
-    }
-
     final filteredItems = _getFilteredAndSortedItems();
     final paginatedItems = _getPaginatedItems(filteredItems);
     final totalItemCount = filteredItems.length;
@@ -143,21 +139,23 @@ class _EasyTableState extends State<EasyTable> {
             child: Scrollbar(
               controller: _verticalController,
               thumbVisibility: true,
-              child: ListView.builder(
-                controller: _verticalController,
-                itemCount: paginatedItems.length,
-                itemBuilder: (context, index) {
-                  final actualIndex = _currentPage * _rowsPerPage + index;
-                  return Column(
-                    children: [
-                      _buildRow(paginatedItems[index], actualIndex),
-                      if (_expandedIndex == actualIndex)
-                        _buildExpandedContent(paginatedItems[index]),
-                      const Divider(height: 1),
-                    ],
-                  );
-                },
-              ),
+              child: widget.loadingConfig.enabled
+                  ? _buildLoading()
+                  : ListView.builder(
+                      controller: _verticalController,
+                      itemCount: paginatedItems.length,
+                      itemBuilder: (context, index) {
+                        final actualIndex = _currentPage * _rowsPerPage + index;
+                        return Column(
+                          children: [
+                            _buildRow(paginatedItems[index], actualIndex),
+                            if (_expandedIndex == actualIndex)
+                              _buildExpandedContent(paginatedItems[index]),
+                            const Divider(height: 1),
+                          ],
+                        );
+                      },
+                    ),
             ),
           ),
           _buildFooter(totalItemCount),
@@ -377,6 +375,10 @@ class _EasyTableState extends State<EasyTable> {
   }
 
   Widget _buildFooter(int totalItemCount) {
+    if (widget.loadingConfig.enabled) {
+      return const SizedBox.shrink();
+    }
+
     final start = _currentPage * _rowsPerPage + 1;
     final end = (_currentPage + 1) * _rowsPerPage;
     final last = end > totalItemCount ? totalItemCount : end;
