@@ -281,13 +281,7 @@ class _EasyTableState extends State<EasyTable> {
                     mainAxisAlignment: _getAlignment(header.align),
                     children: [
                       Expanded(
-                        child: Text(
-                          header.text,
-                          overflow: TextOverflow.ellipsis,
-                          softWrap: false,
-                          maxLines: 1,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                        child: header.effectiveTextWidget,
                       ),
                       if (header.sortable)
                         Icon(

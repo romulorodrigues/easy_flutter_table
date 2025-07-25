@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart';
+
 class HeaderItem {
-  final String text;
+  final String? text;
+  final Widget? textWidget;
   final String value;
   final String align;
   final bool filterable;
@@ -7,11 +10,15 @@ class HeaderItem {
   final String? width;
 
   HeaderItem({
-    required this.text,
+    this.text,
+    this.textWidget,
     required this.value,
     this.align = 'start',
     this.filterable = false,
     this.sortable = true,
     this.width,
   });
+
+  Widget get effectiveTextWidget =>
+      textWidget ?? Text(text ?? '', overflow: TextOverflow.ellipsis);
 }
