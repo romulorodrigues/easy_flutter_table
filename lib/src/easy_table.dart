@@ -31,6 +31,9 @@ class _EasyTableState extends State<EasyTable> {
   String _filterText = '';
   int? _expandedIndex;
 
+  int _rowsPerPage = 10;
+  int _currentPage = 0;
+
   double _calculateTotalTableWidth() {
     double total = 0;
     for (var h in widget.headers) {
@@ -65,9 +68,8 @@ class _EasyTableState extends State<EasyTable> {
     return 150;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final filteredItems = widget.items.where((item) {
+  List<Map<String, dynamic>> get paginatedItems {
+    final filtered = widget.items.where((item) {
       return widget.headers.where((h) => h.filterable).any((h) {
         final value = item[h.value]?.toString().toLowerCase() ?? '';
         return value.contains(_filterText.toLowerCase());
@@ -75,12 +77,29 @@ class _EasyTableState extends State<EasyTable> {
     }).toList();
 
     if (_sortKey != null) {
-      filteredItems.sort((a, b) {
+      filtered.sort((a, b) {
         final aVal = a[_sortKey]?.toString() ?? '';
         final bVal = b[_sortKey]?.toString() ?? '';
         return _ascending ? aVal.compareTo(bVal) : bVal.compareTo(aVal);
       });
     }
+
+    final start = _currentPage * _rowsPerPage;
+    final end = start + _rowsPerPage;
+    return filtered.sublist(
+        start, end > filtered.length ? filtered.length : end);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final totalFilteredItems = widget.items.where((item) {
+      return widget.headers.where((h) => h.filterable).any((h) {
+        final value = item[h.value]?.toString().toLowerCase() ?? '';
+        return value.contains(_filterText.toLowerCase());
+      });
+    }).toList();
+
+    final totalItemCount = totalFilteredItems.length;
 
     final tableWidth = _calculateTotalTableWidth();
     final screenWidth = MediaQuery.of(context).size.width;
@@ -98,18 +117,75 @@ class _EasyTableState extends State<EasyTable> {
             thumbVisibility: true,
             child: ListView.builder(
               controller: _verticalController,
-              itemCount: filteredItems.length,
+              itemCount: paginatedItems.length, // ✅ usamos a lista paginada
               itemBuilder: (context, index) {
+                final actualIndex = _currentPage * _rowsPerPage + index;
                 return Column(
                   children: [
-                    _buildRow(filteredItems[index], index),
-                    if (_expandedIndex == index)
-                      _buildExpandedContent(filteredItems[index]),
+                    _buildRow(paginatedItems[index], actualIndex),
+                    if (_expandedIndex == actualIndex)
+                      _buildExpandedContent(paginatedItems[index]),
                     const Divider(height: 1),
                   ],
                 );
               },
             ),
+          ),
+        ),
+
+        // ✅ Adicione aqui o rodapé:
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Dropdown: linhas por página
+              Row(
+                children: [
+                  const Text('Rows per page:'),
+                  const SizedBox(width: 8),
+                  DropdownButton<int>(
+                    value: _rowsPerPage,
+                    items: [10, 25, 50].map((value) {
+                      return DropdownMenuItem<int>(
+                        value: value,
+                        child: Text(value.toString()),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _rowsPerPage = value;
+                          _currentPage = 0;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+
+              // Paginação
+              Row(
+                children: [
+                  Text(
+                    '${_currentPage * _rowsPerPage + 1} - ${(_currentPage + 1) * _rowsPerPage > totalItemCount ? totalItemCount : (_currentPage + 1) * _rowsPerPage} of $totalItemCount',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left),
+                    onPressed: _currentPage > 0
+                        ? () => setState(() => _currentPage--)
+                        : null,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed:
+                        (_currentPage + 1) * _rowsPerPage < widget.items.length
+                            ? () => setState(() => _currentPage++)
+                            : null,
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ],
