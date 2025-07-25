@@ -10,6 +10,9 @@ class EasyTable extends StatefulWidget {
   final BoxDecoration Function(Map<String, dynamic> item, int index)?
       rowStyleBuilder;
   final LoadingItem loadingConfig;
+  final bool showSelect;
+  final void Function(List<Map<String, dynamic>> selectedItems)?
+      onSelectionChanged;
 
   const EasyTable({
     super.key,
@@ -19,6 +22,8 @@ class EasyTable extends StatefulWidget {
     this.expandedBuilder,
     this.rowStyleBuilder,
     this.loadingConfig = const LoadingItem(),
+    this.showSelect = false,
+    this.onSelectionChanged,
   });
 
   @override
@@ -36,6 +41,9 @@ class _EasyTableState extends State<EasyTable> {
 
   int _rowsPerPage = 10;
   int _currentPage = 0;
+
+  final Set<int> _selectedIndexes = {};
+  bool _selectAll = false;
 
   double _calculateTotalTableWidth() {
     double total = 0;
@@ -191,6 +199,28 @@ class _EasyTableState extends State<EasyTable> {
       width: _calculateMaxTableWidth(),
       child: Row(
         children: [
+          if (widget.showSelect)
+            SizedBox(
+              width: 48,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Checkbox(
+                  value: _selectAll,
+                  onChanged: (value) => setState(() {
+                    _selectAll = value ?? false;
+                    _selectedIndexes.clear();
+                    if (_selectAll) {
+                      for (int i = 0; i < widget.items.length; i++) {
+                        _selectedIndexes.add(i);
+                      }
+                    }
+                    widget.onSelectionChanged?.call(
+                      _selectedIndexes.map((i) => widget.items[i]).toList(),
+                    );
+                  }),
+                ),
+              ),
+            ),
           ...widget.headers.map((header) {
             final isSorted = _sortKey == header.value;
             final flex = _getFlex(header);
@@ -262,6 +292,28 @@ class _EasyTableState extends State<EasyTable> {
           width: _calculateMaxTableWidth(),
           child: Row(
             children: [
+              if (widget.showSelect)
+                Container(
+                  width: 48,
+                  alignment: Alignment.center,
+                  child: Checkbox(
+                    value: _selectedIndexes.contains(index),
+                    onChanged: (value) => setState(() {
+                      if (value == true) {
+                        _selectedIndexes.add(index);
+                      } else {
+                        _selectedIndexes.remove(index);
+                      }
+
+                      _selectAll =
+                          _selectedIndexes.length == widget.items.length;
+
+                      widget.onSelectionChanged?.call(
+                        _selectedIndexes.map((i) => widget.items[i]).toList(),
+                      );
+                    }),
+                  ),
+                ),
               ...widget.headers.map((header) {
                 final flex = _getFlex(header);
 
