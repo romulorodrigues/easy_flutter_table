@@ -82,50 +82,56 @@ class _EasyTableState extends State<EasyTable> {
       });
     }
 
-    return Column(
+    final tableWidth = _calculateTotalTableWidth();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final shouldScrollHorizontally = tableWidth > screenWidth;
+
+    final tableContent = Column(
       children: [
-        _buildSearchBar(),
-        Scrollbar(
-          controller: _horizontalController,
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            controller: _horizontalController,
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: _calculateMaxTableWidth(),
-              ),
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  const Divider(height: 1),
-                  SizedBox(
-                    width: _calculateMaxTableWidth(),
-                    height: MediaQuery.of(context).size.height * 0.6,
-                    child: Scrollbar(
-                      controller: _verticalController,
-                      thumbVisibility: true,
-                      child: ListView.builder(
-                        controller: _verticalController,
-                        itemCount: filteredItems.length,
-                        itemBuilder: (context, index) {
-                          return Column(
-                            children: [
-                              _buildRow(filteredItems[index], index),
-                              if (_expandedIndex == index)
-                                _buildExpandedContent(filteredItems[index]),
-                              const Divider(height: 1),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+        _buildHeader(),
+        const Divider(height: 1),
+        SizedBox(
+          width: shouldScrollHorizontally ? tableWidth : screenWidth,
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: Scrollbar(
+            controller: _verticalController,
+            thumbVisibility: true,
+            child: ListView.builder(
+              controller: _verticalController,
+              itemCount: filteredItems.length,
+              itemBuilder: (context, index) {
+                return Column(
+                  children: [
+                    _buildRow(filteredItems[index], index),
+                    if (_expandedIndex == index)
+                      _buildExpandedContent(filteredItems[index]),
+                    const Divider(height: 1),
+                  ],
+                );
+              },
             ),
           ),
         ),
+      ],
+    );
+
+    return Column(
+      children: [
+        _buildSearchBar(),
+        shouldScrollHorizontally
+            ? Scrollbar(
+                controller: _horizontalController,
+                thumbVisibility: true,
+                child: SingleChildScrollView(
+                  controller: _horizontalController,
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: tableWidth),
+                    child: tableContent,
+                  ),
+                ),
+              )
+            : tableContent,
       ],
     );
   }
