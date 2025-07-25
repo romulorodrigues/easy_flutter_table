@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'models/header_item.dart';
+import 'models/loading_item.dart';
 
 class EasyTable extends StatefulWidget {
   final List<HeaderItem> headers;
@@ -8,6 +9,7 @@ class EasyTable extends StatefulWidget {
   final Widget Function(Map<String, dynamic> item)? expandedBuilder;
   final BoxDecoration Function(Map<String, dynamic> item, int index)?
       rowStyleBuilder;
+  final LoadingItem loadingConfig;
 
   const EasyTable({
     super.key,
@@ -16,6 +18,7 @@ class EasyTable extends StatefulWidget {
     this.expanded = false,
     this.expandedBuilder,
     this.rowStyleBuilder,
+    this.loadingConfig = const LoadingItem(),
   });
 
   @override
@@ -96,6 +99,10 @@ class _EasyTableState extends State<EasyTable> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.loadingConfig.enabled) {
+      return _buildLoading();
+    }
+
     final filteredItems = _getFilteredAndSortedItems();
     final paginatedItems = _getPaginatedItems(filteredItems);
     final totalItemCount = filteredItems.length;
@@ -336,6 +343,22 @@ class _EasyTableState extends State<EasyTable> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLoading() {
+    return Column(
+      children: [
+        LinearProgressIndicator(
+          color: widget.loadingConfig.color,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          widget.loadingConfig.message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+        ),
+      ],
     );
   }
 

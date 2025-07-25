@@ -92,6 +92,11 @@ class TableDemoPage extends StatelessWidget {
           headers: headers,
           items: items,
           expanded: true,
+          // loadingConfig: LoadingItem(
+          //   enabled: true,
+          //   message: 'Fetching users...',
+          //   color: Colors.green,
+          // ),
           rowStyleBuilder: (item, index) {
             return BoxDecoration(
               color: item['follow_up'] == 'Yes' ? Colors.green : Colors.white,
