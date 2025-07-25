@@ -152,12 +152,12 @@ class _EasyTableState extends State<EasyTable> {
           SizedBox(
             width: shouldScrollHorizontally ? tableWidth : screenWidth,
             height: MediaQuery.of(context).size.height * 0.55,
-            child: Scrollbar(
-              controller: _verticalController,
-              thumbVisibility: true,
-              child: widget.loadingConfig.enabled
-                  ? _buildLoading()
-                  : ListView.builder(
+            child: widget.loadingConfig.enabled
+                ? _buildLoading()
+                : Scrollbar(
+                    controller: _verticalController,
+                    thumbVisibility: true,
+                    child: ListView.builder(
                       controller: _verticalController,
                       itemCount: paginatedItems.length,
                       itemBuilder: (context, index) {
@@ -172,7 +172,7 @@ class _EasyTableState extends State<EasyTable> {
                         );
                       },
                     ),
-            ),
+                  ),
           ),
           _buildFooter(totalItemCount),
         ],
