@@ -4,6 +4,7 @@ class SearchBarStyle {
   final EdgeInsetsGeometry padding;
   final InputDecoration decoration;
   final TextStyle? textStyle;
+  final Color? backgroundColor;
 
   const SearchBarStyle({
     this.padding = const EdgeInsets.all(8.0),
@@ -12,5 +13,6 @@ class SearchBarStyle {
       prefixIcon: Icon(Icons.search),
     ),
     this.textStyle,
+    this.backgroundColor,
   });
 }

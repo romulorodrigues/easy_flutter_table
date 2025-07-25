@@ -18,6 +18,8 @@ class EasyTable extends StatefulWidget {
   final TableStyle? style;
   final String primaryKey;
   final SearchBarStyle? searchBarStyle;
+  final String Function(int start, int end, int total)? pageInfoTextBuilder;
+  final String? rowsPerPageText;
 
   const EasyTable({
     super.key,
@@ -32,6 +34,8 @@ class EasyTable extends StatefulWidget {
     this.style = const TableStyle(),
     required this.primaryKey,
     this.searchBarStyle,
+    this.pageInfoTextBuilder,
+    this.rowsPerPageText,
   });
 
   @override
@@ -131,14 +135,23 @@ class _EasyTableState extends State<EasyTable> {
     final shouldScrollHorizontally = tableWidth > screenWidth;
 
     final tableContent = Container(
-      color: widget.style?.backgroundColor,
+      decoration: BoxDecoration(
+        color: widget.style?.backgroundColor ?? Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         children: [
           _buildHeader(),
           const Divider(height: 1),
           SizedBox(
             width: shouldScrollHorizontally ? tableWidth : screenWidth,
-            height: MediaQuery.of(context).size.height * 0.6,
+            height: MediaQuery.of(context).size.height * 0.55,
             child: Scrollbar(
               controller: _verticalController,
               thumbVisibility: true,
@@ -193,7 +206,16 @@ class _EasyTableState extends State<EasyTable> {
 
     return hasFilterable
         ? Container(
-            color: Colors.white,
+            decoration: BoxDecoration(
+              color: style.backgroundColor ?? Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: Padding(
               padding: style.padding,
               child: TextField(
@@ -390,13 +412,13 @@ class _EasyTableState extends State<EasyTable> {
     final last = end > totalItemCount ? totalItemCount : end;
 
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              const Text('Rows per page:'),
+              Text(widget.rowsPerPageText ?? 'Rows per page:'),
               const SizedBox(width: 8),
               DropdownButton<int>(
                 value: _rowsPerPage,
@@ -419,7 +441,11 @@ class _EasyTableState extends State<EasyTable> {
           ),
           Row(
             children: [
-              Text('$start - $last of $totalItemCount'),
+              Text(
+                widget.pageInfoTextBuilder != null
+                    ? widget.pageInfoTextBuilder!(start, last, totalItemCount)
+                    : '$start - $last of $totalItemCount',
+              ),
               IconButton(
                 icon: const Icon(Icons.chevron_left),
                 onPressed: _currentPage > 0
