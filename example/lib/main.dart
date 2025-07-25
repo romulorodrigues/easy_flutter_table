@@ -91,6 +91,7 @@ class TableDemoPage extends StatelessWidget {
         child: EasyTable(
           headers: headers,
           items: items,
+          primaryKey: 'id',
           expanded: true,
           // loadingConfig: LoadingItem(
           //   enabled: true,

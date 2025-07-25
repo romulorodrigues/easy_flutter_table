@@ -15,6 +15,7 @@ class EasyTable extends StatefulWidget {
   final void Function(List<Map<String, dynamic>> selectedItems)?
       onSelectionChanged;
   final TableStyle? style;
+  final String primaryKey;
 
   const EasyTable({
     super.key,
@@ -27,6 +28,7 @@ class EasyTable extends StatefulWidget {
     this.showSelect = false,
     this.onSelectionChanged,
     this.style = const TableStyle(),
+    required this.primaryKey,
   });
 
   @override
@@ -45,7 +47,7 @@ class _EasyTableState extends State<EasyTable> {
   int _rowsPerPage = 10;
   int _currentPage = 0;
 
-  final Set<int> _selectedIndexes = {};
+  final Set<dynamic> _selectedKeys = {};
   bool _selectAll = false;
 
   double _calculateTotalTableWidth() {
@@ -214,14 +216,17 @@ class _EasyTableState extends State<EasyTable> {
                   value: _selectAll,
                   onChanged: (value) => setState(() {
                     _selectAll = value ?? false;
-                    _selectedIndexes.clear();
+                    _selectedKeys.clear();
                     if (_selectAll) {
-                      for (int i = 0; i < widget.items.length; i++) {
-                        _selectedIndexes.add(i);
+                      for (var item in widget.items) {
+                        _selectedKeys.add(item[widget.primaryKey]);
                       }
                     }
                     widget.onSelectionChanged?.call(
-                      _selectedIndexes.map((i) => widget.items[i]).toList(),
+                      widget.items
+                          .where((i) =>
+                              _selectedKeys.contains(i[widget.primaryKey]))
+                          .toList(),
                     );
                   }),
                 ),
@@ -295,6 +300,8 @@ class _EasyTableState extends State<EasyTable> {
         ) ??
         BoxDecoration(color: defaultColor);
 
+    final itemKey = item[widget.primaryKey];
+
     return InkWell(
       onTap: widget.expanded
           ? () => setState(() {
@@ -313,19 +320,21 @@ class _EasyTableState extends State<EasyTable> {
                   alignment: Alignment.center,
                   child: Checkbox(
                     activeColor: Colors.grey,
-                    value: _selectedIndexes.contains(index),
+                    value: _selectedKeys.contains(itemKey),
                     onChanged: (value) => setState(() {
                       if (value == true) {
-                        _selectedIndexes.add(index);
+                        _selectedKeys.add(itemKey);
                       } else {
-                        _selectedIndexes.remove(index);
+                        _selectedKeys.remove(itemKey);
                       }
 
-                      _selectAll =
-                          _selectedIndexes.length == widget.items.length;
+                      _selectAll = _selectedKeys.length == widget.items.length;
 
                       widget.onSelectionChanged?.call(
-                        _selectedIndexes.map((i) => widget.items[i]).toList(),
+                        widget.items
+                            .where((i) =>
+                                _selectedKeys.contains(i[widget.primaryKey]))
+                            .toList(),
                       );
                     }),
                   ),
