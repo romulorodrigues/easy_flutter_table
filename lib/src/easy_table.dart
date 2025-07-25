@@ -81,9 +81,16 @@ class _EasyTableState extends State<EasyTable> {
 
     if (_sortKey != null) {
       filtered.sort((a, b) {
-        final aVal = a[_sortKey]?.toString() ?? '';
-        final bVal = b[_sortKey]?.toString() ?? '';
-        return _ascending ? aVal.compareTo(bVal) : bVal.compareTo(aVal);
+        final aVal = a[_sortKey];
+        final bVal = b[_sortKey];
+
+        if (aVal is num && bVal is num) {
+          return _ascending ? aVal.compareTo(bVal) : bVal.compareTo(aVal);
+        }
+
+        final aStr = aVal?.toString() ?? '';
+        final bStr = bVal?.toString() ?? '';
+        return _ascending ? aStr.compareTo(bStr) : bStr.compareTo(aStr);
       });
     }
 
