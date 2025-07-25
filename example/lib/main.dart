@@ -33,14 +33,12 @@ class _TableDemoPageState extends State<TableDemoPage> {
   @override
   void initState() {
     super.initState();
-    // Simula carregamento de 5 segundos
-    Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _loading = false;
       });
     });
 
-    // Gera os dados desde já
     final random = Random();
     final names = [
       'Alice',
@@ -87,25 +85,50 @@ class _TableDemoPageState extends State<TableDemoPage> {
   Widget build(BuildContext context) {
     final headers = [
       HeaderItem(text: 'ID', value: 'id', filterable: true, align: 'start'),
-      HeaderItem(text: 'Name', value: 'name', filterable: true, align: 'start'),
       HeaderItem(
-          text: 'Birth Date',
-          value: 'birth_date',
-          align: 'start',
-          width: '150px'),
+          textWidget: Tooltip(
+            message: 'Username',
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: const [
+                Icon(Icons.info, size: 16, color: Colors.black),
+                SizedBox(width: 4),
+                Text('Name'),
+              ],
+            ),
+          ),
+          value: 'name',
+          filterable: true,
+          align: 'start'),
+      HeaderItem(
+        text: 'Birth Date',
+        value: 'birth_date',
+        align: 'start',
+        width: '150px',
+      ),
       HeaderItem(
           text: 'Mother', value: 'mother', filterable: true, align: 'start'),
       HeaderItem(
           text: 'Next Appointment', value: 'next_appointment', align: 'start'),
       HeaderItem(
-          text: 'Follow-up',
+          textWidget: Tooltip(
+            message: 'Follow-up',
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: const [
+                Icon(Icons.check_circle, size: 16, color: Colors.green),
+                SizedBox(width: 4),
+                Text('Status'),
+              ],
+            ),
+          ),
           value: 'follow_up',
           align: 'start',
           sortable: false),
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Easy Table Example')),
+      appBar: AppBar(title: const Text('Easy Flutter Table Example')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: EasyTable(
@@ -132,16 +155,16 @@ class _TableDemoPageState extends State<TableDemoPage> {
           ),
           showSelect: true,
           onSelectionChanged: (selectedItems) {
-            print('Selecionados: $selectedItems');
+            print('Selected: $selectedItems');
           },
-          rowStyleBuilder: (item, index) {
-            return BoxDecoration(
-              color: item['follow_up'] == 'Yes' ? Colors.green : Colors.white,
-              border: Border(
-                bottom: BorderSide(color: Colors.grey.shade300),
-              ),
-            );
-          },
+          // rowStyleBuilder: (item, index) {
+          //   return BoxDecoration(
+          //     color: item['follow_up'] == 'Yes' ? Colors.green : Colors.white,
+          //     border: Border(
+          //       bottom: BorderSide(color: Colors.grey.shade300),
+          //     ),
+          //   );
+          // },
           style: const TableStyle(
             backgroundColor: Colors.white,
             striped: true,
@@ -158,38 +181,32 @@ class _TableDemoPageState extends State<TableDemoPage> {
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
-                  DataTable(
-                    columns: const [
-                      DataColumn(
-                          label: Text('Field',
-                              style: TextStyle(fontWeight: FontWeight.bold))),
-                      DataColumn(
-                          label: Text('Value',
-                              style: TextStyle(fontWeight: FontWeight.bold))),
-                    ],
-                    rows: [
-                      DataRow(cells: [
-                        const DataCell(Text('Birth Date')),
-                        DataCell(Text(item['birth_date'] ?? '-')),
-                      ]),
-                      DataRow(cells: [
-                        const DataCell(Text('Mother')),
-                        DataCell(Text(item['mother'] ?? '-')),
-                      ]),
-                      DataRow(cells: [
-                        const DataCell(Text('Next Appointment')),
-                        DataCell(Text(item['next_appointment'] ?? '-')),
-                      ]),
-                      DataRow(cells: [
-                        const DataCell(Text('Follow-up')),
-                        DataCell(Text(item['follow_up'] ?? '-')),
-                      ]),
-                    ],
-                  ),
                 ],
               ),
             );
+          },
+          cellBuilder: (item, header) {
+            if (header.value == 'birth_date') {
+              final raw = item['birth_date'];
+              if (raw == null || raw is! String) return const Text('-');
+              final date = DateTime.tryParse(raw);
+              if (date == null) return const Text('-');
+              return Text(
+                '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
+              );
+            }
+
+            if (header.value == 'mother') {
+              final mother = item['mother'];
+              return Text(
+                '$mother',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            }
+
+            return Text(item[header.value]?.toString() ?? '');
           },
         ),
       ),

@@ -1,7 +1,8 @@
 name: easy_flutter_table
-description: "A new Flutter package project."
-version: 0.0.1
-homepage:
+description: "Is a customizable and responsive Flutter table widget."
+version: 1.0.0
+homepage: https://github.com/romulorodrigues/easy_flutter_table
+repository: https://github.com/romulorodrigues/easy_flutter_table
 
 environment:
   sdk: ^3.5.3
