@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'models/header_item.dart';
 import 'models/loading_item.dart';
+import 'models/table_style.dart';
 
 class EasyTable extends StatefulWidget {
   final List<HeaderItem> headers;
@@ -13,6 +14,7 @@ class EasyTable extends StatefulWidget {
   final bool showSelect;
   final void Function(List<Map<String, dynamic>> selectedItems)?
       onSelectionChanged;
+  final TableStyle? style;
 
   const EasyTable({
     super.key,
@@ -24,6 +26,7 @@ class EasyTable extends StatefulWidget {
     this.loadingConfig = const LoadingItem(),
     this.showSelect = false,
     this.onSelectionChanged,
+    this.style = const TableStyle(),
   });
 
   @override
@@ -126,35 +129,38 @@ class _EasyTableState extends State<EasyTable> {
     final screenWidth = MediaQuery.of(context).size.width;
     final shouldScrollHorizontally = tableWidth > screenWidth;
 
-    final tableContent = Column(
-      children: [
-        _buildHeader(),
-        const Divider(height: 1),
-        SizedBox(
-          width: shouldScrollHorizontally ? tableWidth : screenWidth,
-          height: MediaQuery.of(context).size.height * 0.6,
-          child: Scrollbar(
-            controller: _verticalController,
-            thumbVisibility: true,
-            child: ListView.builder(
+    final tableContent = Container(
+      color: widget.style?.backgroundColor,
+      child: Column(
+        children: [
+          _buildHeader(),
+          const Divider(height: 1),
+          SizedBox(
+            width: shouldScrollHorizontally ? tableWidth : screenWidth,
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Scrollbar(
               controller: _verticalController,
-              itemCount: paginatedItems.length,
-              itemBuilder: (context, index) {
-                final actualIndex = _currentPage * _rowsPerPage + index;
-                return Column(
-                  children: [
-                    _buildRow(paginatedItems[index], actualIndex),
-                    if (_expandedIndex == actualIndex)
-                      _buildExpandedContent(paginatedItems[index]),
-                    const Divider(height: 1),
-                  ],
-                );
-              },
+              thumbVisibility: true,
+              child: ListView.builder(
+                controller: _verticalController,
+                itemCount: paginatedItems.length,
+                itemBuilder: (context, index) {
+                  final actualIndex = _currentPage * _rowsPerPage + index;
+                  return Column(
+                    children: [
+                      _buildRow(paginatedItems[index], actualIndex),
+                      if (_expandedIndex == actualIndex)
+                        _buildExpandedContent(paginatedItems[index]),
+                      const Divider(height: 1),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
-        ),
-        _buildFooter(totalItemCount),
-      ],
+          _buildFooter(totalItemCount),
+        ],
+      ),
     );
 
     return Column(
@@ -278,7 +284,16 @@ class _EasyTableState extends State<EasyTable> {
   }
 
   Widget _buildRow(Map<String, dynamic> item, int index) {
-    final decoration = widget.rowStyleBuilder?.call(item, index);
+    final baseDecoration = widget.rowStyleBuilder?.call(item, index);
+
+    final isStriped = widget.style?.striped ?? false;
+    final defaultColor =
+        isStriped && index.isOdd ? Colors.grey.shade100 : Colors.transparent;
+
+    final decoration = baseDecoration?.copyWith(
+          color: baseDecoration.color ?? defaultColor,
+        ) ??
+        BoxDecoration(color: defaultColor);
 
     return InkWell(
       onTap: widget.expanded
@@ -297,6 +312,7 @@ class _EasyTableState extends State<EasyTable> {
                   width: 48,
                   alignment: Alignment.center,
                   child: Checkbox(
+                    activeColor: Colors.grey,
                     value: _selectedIndexes.contains(index),
                     onChanged: (value) => setState(() {
                       if (value == true) {
@@ -320,7 +336,8 @@ class _EasyTableState extends State<EasyTable> {
                 return Flexible(
                   flex: flex,
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding:
+                        widget.style?.cellPadding ?? const EdgeInsets.all(12),
                     child: Align(
                       alignment: _getTextAlign(header.align),
                       child: Text(

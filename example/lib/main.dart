@@ -97,18 +97,23 @@ class TableDemoPage extends StatelessWidget {
           //   message: 'Fetching users...',
           //   color: Colors.green,
           // ),
-          showSelect: true,
-          onSelectionChanged: (selectedItems) {
-            print('Selected: ${selectedItems}');
-          },
-          rowStyleBuilder: (item, index) {
-            return BoxDecoration(
-              color: item['follow_up'] == 'Yes' ? Colors.green : Colors.white,
-              border: Border(
-                bottom: BorderSide(color: Colors.grey.shade300),
-              ),
-            );
-          },
+          // showSelect: true,
+          // onSelectionChanged: (selectedItems) {
+          //   print('Selected: ${selectedItems}');
+          // },
+          // rowStyleBuilder: (item, index) {
+          //   return BoxDecoration(
+          //     color: item['follow_up'] == 'Yes' ? Colors.green : Colors.white,
+          //     border: Border(
+          //       bottom: BorderSide(color: Colors.grey.shade300),
+          //     ),
+          //   );
+          // },
+          style: TableStyle(
+            backgroundColor: Colors.white,
+            striped: true,
+            cellPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+          ),
           expandedBuilder: (item) {
             return Padding(
               padding: const EdgeInsets.all(12.0),
