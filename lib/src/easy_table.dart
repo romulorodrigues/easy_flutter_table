@@ -68,7 +68,7 @@ class _EasyTableState extends State<EasyTable> {
     return 150;
   }
 
-  List<Map<String, dynamic>> get paginatedItems {
+  List<Map<String, dynamic>> _getFilteredAndSortedItems() {
     final filtered = widget.items.where((item) {
       return widget.headers.where((h) => h.filterable).any((h) {
         final value = item[h.value]?.toString().toLowerCase() ?? '';
@@ -84,22 +84,21 @@ class _EasyTableState extends State<EasyTable> {
       });
     }
 
+    return filtered;
+  }
+
+  List<Map<String, dynamic>> _getPaginatedItems(
+      List<Map<String, dynamic>> items) {
     final start = _currentPage * _rowsPerPage;
     final end = start + _rowsPerPage;
-    return filtered.sublist(
-        start, end > filtered.length ? filtered.length : end);
+    return items.sublist(start, end > items.length ? items.length : end);
   }
 
   @override
   Widget build(BuildContext context) {
-    final totalFilteredItems = widget.items.where((item) {
-      return widget.headers.where((h) => h.filterable).any((h) {
-        final value = item[h.value]?.toString().toLowerCase() ?? '';
-        return value.contains(_filterText.toLowerCase());
-      });
-    }).toList();
-
-    final totalItemCount = totalFilteredItems.length;
+    final filteredItems = _getFilteredAndSortedItems();
+    final paginatedItems = _getPaginatedItems(filteredItems);
+    final totalItemCount = filteredItems.length;
 
     final tableWidth = _calculateTotalTableWidth();
     final screenWidth = MediaQuery.of(context).size.width;
@@ -117,7 +116,7 @@ class _EasyTableState extends State<EasyTable> {
             thumbVisibility: true,
             child: ListView.builder(
               controller: _verticalController,
-              itemCount: paginatedItems.length, // ✅ usamos a lista paginada
+              itemCount: paginatedItems.length,
               itemBuilder: (context, index) {
                 final actualIndex = _currentPage * _rowsPerPage + index;
                 return Column(
@@ -132,62 +131,7 @@ class _EasyTableState extends State<EasyTable> {
             ),
           ),
         ),
-
-        // ✅ Adicione aqui o rodapé:
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Dropdown: linhas por página
-              Row(
-                children: [
-                  const Text('Rows per page:'),
-                  const SizedBox(width: 8),
-                  DropdownButton<int>(
-                    value: _rowsPerPage,
-                    items: [10, 25, 50].map((value) {
-                      return DropdownMenuItem<int>(
-                        value: value,
-                        child: Text(value.toString()),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _rowsPerPage = value;
-                          _currentPage = 0;
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
-
-              // Paginação
-              Row(
-                children: [
-                  Text(
-                    '${_currentPage * _rowsPerPage + 1} - ${(_currentPage + 1) * _rowsPerPage > totalItemCount ? totalItemCount : (_currentPage + 1) * _rowsPerPage} of $totalItemCount',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    onPressed: _currentPage > 0
-                        ? () => setState(() => _currentPage--)
-                        : null,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    onPressed:
-                        (_currentPage + 1) * _rowsPerPage < widget.items.length
-                            ? () => setState(() => _currentPage++)
-                            : null,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+        _buildFooter(totalItemCount),
       ],
     );
 
@@ -336,6 +280,61 @@ class _EasyTableState extends State<EasyTable> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFooter(int totalItemCount) {
+    final start = _currentPage * _rowsPerPage + 1;
+    final end = (_currentPage + 1) * _rowsPerPage;
+    final last = end > totalItemCount ? totalItemCount : end;
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              const Text('Rows per page:'),
+              const SizedBox(width: 8),
+              DropdownButton<int>(
+                value: _rowsPerPage,
+                items: [10, 25, 50].map((value) {
+                  return DropdownMenuItem<int>(
+                    value: value,
+                    child: Text(value.toString()),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _rowsPerPage = value;
+                      _currentPage = 0;
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Text('$start - $last of $totalItemCount'),
+              IconButton(
+                icon: const Icon(Icons.chevron_left),
+                onPressed: _currentPage > 0
+                    ? () => setState(() => _currentPage--)
+                    : null,
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right),
+                onPressed: (_currentPage + 1) * _rowsPerPage < totalItemCount
+                    ? () => setState(() => _currentPage++)
+                    : null,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
